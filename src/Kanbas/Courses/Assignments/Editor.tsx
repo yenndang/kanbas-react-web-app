@@ -59,7 +59,7 @@ export default function AssignmentEditor() {
           </td>
         </tr>
         <br />
-        {/* Submission Type */}
+        {/* Submission Type   */}
         <tr>
           <td align="right" valign="top">
             <label htmlFor="wd-submission-type">Submission Type</label>
