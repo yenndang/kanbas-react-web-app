@@ -6,6 +6,7 @@ import Signup from "./Signup";
 export default function Account() {
   return (
     <div id="wd-account-screen">
+      <h1>Kanbas</h1>
       <table>
         <tr>
           <td valign="top">
