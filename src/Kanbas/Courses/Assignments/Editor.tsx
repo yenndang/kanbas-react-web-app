@@ -1,12 +1,61 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom"; // Import necessary hooks
+import * as db from "../../Database"; // Import assignments from the database
+
+// Define the type for an assignment
+interface Assignment {
+  _id: string;
+  title: string;
+  course: string;
+  availableFrom: string;
+  dueDate: string;
+  until: string;
+  points: number;
+  modules: string[];
+  description: string;
+}
 
 export default function AssignmentEditor() {
+  const { cid, assignmentId } = useParams(); // Extract course ID and assignment ID from the URL
+  const navigate = useNavigate(); // Initialize useNavigate for programmatic navigation
+  const assignments: Assignment[] = db.assignments; // Access the assignments from the database
+
+  const [assignment, setAssignment] = useState<Assignment | null>(null);
+
+  // Fetch the correct assignment based on assignment ID and course ID
+  useEffect(() => {
+    const foundAssignment = assignments.find(
+      (a) => a._id === assignmentId && a.course === cid
+    );
+    setAssignment(foundAssignment || null);
+  }, [cid, assignmentId, assignments]);
+
+  if (!assignment) {
+    return <div>Loading...</div>; // Show loading if assignment data hasn't loaded yet
+  }
+
+  // Handle Cancel button click
+  const handleCancel = () => {
+    navigate(`/Kanbas/Courses/${cid}/Assignments`);
+  };
+
+  // Handle Save button click (you can add save logic here if needed)
+  const handleSave = () => {
+    // Perform save logic here (e.g., API call or state update)
+    navigate(`/Kanbas/Courses/${cid}/Assignments`); // Navigate back to the Assignments screen
+  };
+
   return (
     <div id="wd-assignments-editor" className="container mt-4">
       {/* Assignment Name */}
       <div className="mb-4">
         <h5>Assignment Name</h5>
-        <input id="wd-name" value="A1" className="form-control" />
+        <input
+          id="wd-name"
+          value={assignment.title} // Dynamic assignment title
+          className="form-control"
+          readOnly
+        />
       </div>
 
       {/* Assignment Description */}
@@ -15,7 +64,8 @@ export default function AssignmentEditor() {
           id="wd-description"
           className="form-control"
           rows={8}
-          defaultValue="The assignment is available online Submit a link to the landing page of your Web application running on Netlify. The landing page should include the following: Your full name and section Links to each of the lab assignments Links to all relevant source code repositories The Kanbas application should include a link to navigate back to the landing page."
+          value={assignment.description} // Dynamic assignment description
+          readOnly
         />
       </div>
 
@@ -32,12 +82,13 @@ export default function AssignmentEditor() {
             id="wd-points"
             type="number"
             className="form-control"
-            value={100}
+            value={assignment.points} // Dynamic points
+            readOnly
           />
         </div>
       </div>
 
-      {/* Assignment Group */}
+      {/* Assignment Group (Static) */}
       <div className="row mb-4 justify-content-end">
         <label
           htmlFor="wd-group"
@@ -55,7 +106,7 @@ export default function AssignmentEditor() {
         </div>
       </div>
 
-      {/* Display Grade As */}
+      {/* Display Grade As (Static) */}
       <div className="row mb-4 justify-content-end">
         <label
           htmlFor="wd-display-grade-as"
@@ -72,7 +123,7 @@ export default function AssignmentEditor() {
         </div>
       </div>
 
-      {/* Submission Type */}
+      {/* Submission Type (Static) */}
       <div className="row mb-4 justify-content-end">
         <label
           htmlFor="wd-submission-type"
@@ -147,7 +198,7 @@ export default function AssignmentEditor() {
         </div>
       </div>
 
-      {/* Assign To Section */}
+      {/* Assign To Section (Static) */}
       <div className="row mb-4 justify-content-end">
         <label
           htmlFor="wd-assign-to"
@@ -173,7 +224,10 @@ export default function AssignmentEditor() {
               type="datetime-local"
               id="wd-due-date"
               className="form-control"
-              value="2024-05-13T23:59"
+              value={new Date(assignment.dueDate)
+                .toISOString()
+                .substring(0, 16)} // Dynamic due date
+              readOnly
             />
             <br />
             <div className="row">
@@ -185,7 +239,10 @@ export default function AssignmentEditor() {
                   type="datetime-local"
                   id="wd-available-from"
                   className="form-control"
-                  value="2024-05-06T00:00"
+                  value={new Date(assignment.availableFrom)
+                    .toISOString()
+                    .substring(0, 16)} // Dynamic available from date
+                  readOnly
                 />
               </div>
               <div className="col-md-6">
@@ -196,7 +253,10 @@ export default function AssignmentEditor() {
                   type="datetime-local"
                   id="wd-available-until"
                   className="form-control"
-                  value="2024-05-28T23:59"
+                  value={new Date(assignment.until)
+                    .toISOString()
+                    .substring(0, 16)} // Dynamic until date
+                  readOnly
                 />
               </div>
             </div>
@@ -206,8 +266,12 @@ export default function AssignmentEditor() {
 
       {/* Save and Cancel Buttons */}
       <div className="d-flex justify-content-end">
-        <button className="btn btn-secondary me-2">Cancel</button>
-        <button className="btn btn-danger">Save</button>
+        <button className="btn btn-secondary me-2" onClick={handleCancel}>
+          Cancel
+        </button>
+        <button className="btn btn-danger" onClick={handleSave}>
+          Save
+        </button>
       </div>
     </div>
   );

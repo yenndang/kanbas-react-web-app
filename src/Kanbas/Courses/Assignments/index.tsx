@@ -1,10 +1,19 @@
-import React from "react";
+import { useParams, Link } from "react-router-dom";
+import * as db from "../../Database"; // Import assignments from the database
 import { FaPlus, FaSearch, FaCheckCircle } from "react-icons/fa"; // Icons
 import { GrDrag } from "react-icons/gr"; // Drag icon
 import { BsCaretDownFill, BsThreeDotsVertical } from "react-icons/bs"; // Caret down and 3-dots menu
 import { AiOutlineOrderedList } from "react-icons/ai"; // Outline checkbox icon
 
 export default function Assignments() {
+  const { cid } = useParams(); // Get the course ID from the URL
+  const assignments = db.assignments; // Access assignments from the database
+
+  // Filter assignments for the current course
+  const courseAssignments = assignments.filter(
+    (assignment) => assignment.course === cid
+  );
+
   return (
     <div id="wd-assignments" className="container mt-4">
       {/* Search bar and buttons */}
@@ -55,6 +64,7 @@ export default function Assignments() {
                   fontWeight: "bold",
                 }}
               >
+                {/* You can customize this section */}
                 40% of Total
               </span>
               <button className="btn text-decoration-none">
@@ -68,89 +78,39 @@ export default function Assignments() {
 
           {/* List of Assignments */}
           <ul className="list-group rounded-0">
-            {/* Assignment 1 */}
-            <li className="wd-assignment-item list-group-item p-3">
-              <div className="d-flex align-items-center">
-                <GrDrag className="me-2" /> {/* Drag icon */}
-                <AiOutlineOrderedList
-                  className="me-2"
-                  style={{ color: "green" }}
-                />{" "}
-                <div className="me-auto">
-                  <a
-                    href="#/Kanbas/Courses/1234/Assignments/123"
-                    className="fw-bold text-dark text-decoration-none"
-                  >
-                    A1
-                  </a>
-                  <br />
-                  <span className="text-danger">Multiple Modules | </span>
-                  <strong>Not available until</strong> May 6 at 12:00am |
-                  <br />
-                  <strong>Due</strong> May 13 at 11:59pm | 100 pts
+            {/* Dynamically render assignments */}
+            {courseAssignments.map((assignment) => (
+              <li
+                key={assignment._id}
+                className="wd-assignment-item list-group-item p-3"
+              >
+                <div className="d-flex align-items-center">
+                  <GrDrag className="me-2" /> {/* Drag icon */}
+                  <AiOutlineOrderedList
+                    className="me-2"
+                    style={{ color: "green" }}
+                  />{" "}
+                  <div className="me-auto">
+                    <Link
+                      to={`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}
+                      className="fw-bold text-dark text-decoration-none"
+                    >
+                      {assignment.title} {/* Render assignment title */}
+                    </Link>
+                    <br />
+                    <span className="text-danger">Multiple Modules | </span>
+                    <strong>Not available until</strong>{" "}
+                    {assignment.availableFrom} |<br />
+                    <strong>Due</strong> {assignment.dueDate} |{" "}
+                    {assignment.points} pts
+                  </div>
+                  <FaCheckCircle className="text-success me-2" />{" "}
+                  {/* Checkmark icon */}
+                  <BsThreeDotsVertical className="text-muted" />{" "}
+                  {/* 3-dots menu */}
                 </div>
-                <FaCheckCircle className="text-success me-2" />{" "}
-                {/* Checkmark icon */}
-                <BsThreeDotsVertical className="text-muted" />{" "}
-                {/* 3-dots menu */}
-              </div>
-            </li>
-
-            {/* Assignment 2 */}
-            <li className="wd-assignment-item list-group-item p-3">
-              <div className="d-flex align-items-center">
-                <GrDrag className="me-2" /> {/* Drag icon */}
-                <AiOutlineOrderedList
-                  className="me-2"
-                  style={{ color: "green" }}
-                />{" "}
-                <div className="me-auto">
-                  <a
-                    href="#/Kanbas/Courses/1234/Assignments/124"
-                    className="fw-bold text-dark text-decoration-none"
-                  >
-                    A2
-                  </a>
-                  <br />
-                  <span className="text-danger">Multiple Modules | </span>
-                  <strong>Not available until</strong> May 13 at 12:00am |
-                  <br />
-                  <strong>Due</strong> May 20 at 11:59pm | 100 pts
-                </div>
-                <FaCheckCircle className="text-success me-2" />{" "}
-                {/* Checkmark icon */}
-                <BsThreeDotsVertical className="text-muted" />{" "}
-                {/* 3-dots menu */}
-              </div>
-            </li>
-
-            {/* Assignment 3 */}
-            <li className="wd-assignment-item list-group-item p-3">
-              <div className="d-flex align-items-center">
-                <GrDrag className="me-2" /> {/* Drag icon */}
-                <AiOutlineOrderedList
-                  className="me-2"
-                  style={{ color: "green" }}
-                />{" "}
-                <div className="me-auto">
-                  <a
-                    href="#/Kanbas/Courses/1234/Assignments/125"
-                    className="fw-bold text-dark text-decoration-none"
-                  >
-                    A3
-                  </a>
-                  <br />
-                  <span className="text-danger">Multiple Modules | </span>
-                  <strong>Not available until</strong> May 20 at 12:00am |
-                  <br />
-                  <strong>Due</strong> May 27 at 11:59pm | 100 pts
-                </div>
-                <FaCheckCircle className="text-success me-2" />{" "}
-                {/* Checkmark icon */}
-                <BsThreeDotsVertical className="text-muted" />{" "}
-                {/* 3-dots menu */}
-              </div>
-            </li>
+              </li>
+            ))}
           </ul>
         </li>
       </ul>
