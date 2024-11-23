@@ -4,7 +4,14 @@ import { GrDrag } from "react-icons/gr";
 import { BsCaretDownFill, BsThreeDotsVertical } from "react-icons/bs";
 import { AiOutlineOrderedList } from "react-icons/ai";
 import { useSelector, useDispatch } from "react-redux";
-import { deleteAssignment } from "./reducer";
+import {
+  addAssignment,
+  deleteAssignment,
+  updateAssignment,
+  setAssignments,
+} from "./reducer";
+import { useState, useEffect } from "react";
+import * as client from "./client";
 
 // Helper function to format date to "MMM dd at hh:mm am/pm" format
 const formatDate = (dateString: string) => {
@@ -22,22 +29,30 @@ export default function Assignments() {
   const { cid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      if (cid) {
+        const data = await client.findAssignmentsForCourse(cid);
+        dispatch(setAssignments(data));
+      }
+    };
+    fetchAssignments();
+  }, [cid, dispatch]);
 
   const assignments = useSelector(
     (state: any) => state.assignmentsReducer.assignments
   );
   const { currentUser } = useSelector((state: any) => state.accountReducer);
 
-  const courseAssignments = assignments.filter(
-    (assignment: any) => assignment.course === cid
-  );
+  const courseAssignments = assignments;
 
   const handleAddAssignment = () => {
     navigate(`/Kanbas/Courses/${cid}/Assignments/new`);
   };
 
-  const handleDeleteAssignment = (assignmentId: string) => {
+  const handleDeleteAssignment = async (assignmentId: string) => {
     if (window.confirm("Are you sure you want to delete this assignment?")) {
+      await client.deleteAssignment(assignmentId); // API call
       dispatch(deleteAssignment(assignmentId));
     }
   };

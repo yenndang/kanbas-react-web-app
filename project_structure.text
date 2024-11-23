@@ -1,4 +1,5 @@
 - .DS_Store
+- .env.local
 - .gitignore
 - README.md
 - package-lock.json
@@ -37,14 +38,17 @@
       - Navigation.tsx
       - Profile.tsx
       - ProtectedRoute.tsx
+      - Session.tsx
       - Signin.tsx
       - Signup.tsx
+      - client.ts
       - index.tsx
       - reducer.ts
     - Courses
       - Assignments
         - Editor.tsx
         - index.tsx
+        - reducer.ts
       - Home
         - Status.tsx
         - index.tsx
@@ -54,11 +58,14 @@
         - ModuleControlButtons.tsx
         - ModuleEditor.tsx
         - ModulesControls.tsx
+        - client.ts
         - index.tsx
         - reducer.ts
       - Navigation.tsx
       - People
         - Table.tsx
+      - client.ts
+      - enrollmentReducer.ts
       - index.tsx
     - Dashboard.css
     - Dashboard.tsx
@@ -154,6 +161,18 @@
           - TodoList.tsx
           - todosReducer.ts
       - StringStateVariables.tsx
+      - index.tsx
+    - Lab5
+      - EnvironmentVariables.tsx
+      - HttpClient.tsx
+      - PathParameters.tsx
+      - QueryParameters.tsx
+      - WorkingWithArrays.tsx
+      - WorkingWithArraysAsynchronously.tsx
+      - WorkingWithModules.tsx
+      - WorkingWithObjects.tsx
+      - WorkingWithObjectsAsynchronously.tsx
+      - client.ts
       - index.tsx
     - TOC.tsx
     - index.tsx

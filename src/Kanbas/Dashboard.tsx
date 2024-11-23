@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { enroll, unenroll } from "./Courses/enrollmentReducer"; // Assuming these actions are implemented in your enrollmentReducer
-import * as db from "./Database";
-
+import { enroll, unenroll, setEnrollments } from "./Courses/enrollmentReducer"; // Assuming these actions are implemented in your enrollmentReducer
+// import * as db from "./Database";
+import { AppDispatch } from "./store";
+import * as client from "./Courses/Enrollments/client";
 export default function Dashboard({
   courses,
   course,
@@ -19,7 +20,7 @@ export default function Dashboard({
   deleteCourse: (course: any) => void;
   updateCourse: () => void;
 }) {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>(); // Specify AppDispatch type
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const enrollments = useSelector(
     (state: any) => state.enrollmentReducer.enrollments
@@ -27,31 +28,45 @@ export default function Dashboard({
 
   const [showAllCourses, setShowAllCourses] = useState(false);
 
+  // Fetch enrollments on mount or when currentUser changes
+  useEffect(() => {
+    const fetchUserEnrollments = async () => {
+      if (currentUser) {
+        const enrollments = await client.findEnrollmentsForUser(
+          currentUser._id
+        );
+        dispatch(setEnrollments(enrollments));
+      }
+    };
+    fetchUserEnrollments();
+  }, [currentUser, dispatch]);
+
   // Toggle between showing all courses or only enrolled courses
   const toggleShowAllCourses = () => {
     setShowAllCourses(!showAllCourses);
   };
 
   // Get courses the user is enrolled in
-  const userCourses = courses.filter((courseItem) =>
-    enrollments.some(
-      (enrollment: any) =>
-        enrollment.user === currentUser?._id &&
-        enrollment.course === courseItem._id
-    )
-  );
+  // const userCourses = courses.filter((courseItem) =>
+  //   enrollments.some(
+  //     (enrollment: any) =>
+  //       enrollment.user === currentUser?._id &&
+  //       enrollment.course === courseItem._id
+  //   )
+  // ); My notes: no need for filter anymore 4.4.1
+  const userCourses = courses;
 
   // Function to handle enrollment
-  const handleEnroll = (courseId: string) => {
+  const handleEnroll = async (courseId: string) => {
     if (currentUser) {
-      dispatch(enroll({ userId: currentUser._id, courseId }));
+      dispatch(enroll(currentUser._id, courseId)); // Call the async thunk
     }
   };
 
   // Function to handle unenrollment
-  const handleUnenroll = (courseId: string) => {
+  const handleUnenroll = async (courseId: string) => {
     if (currentUser) {
-      dispatch(unenroll({ userId: currentUser._id, courseId }));
+      dispatch(unenroll(currentUser._id, courseId)); // Call the async thunk
     }
   };
 

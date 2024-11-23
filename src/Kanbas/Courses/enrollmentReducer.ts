@@ -1,48 +1,47 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-interface Enrollment {
-  _id: string;
-  user: string;
-  course: string;
-}
-
-// Load initial enrollment data from JSON file, not local storage, for a fresh start on reload
-const loadEnrollments = (): Enrollment[] => {
-  return require("../Database/enrollments.json");
-};
+import * as client from "./Enrollments/client";
 
 const initialState = {
-  enrollments: loadEnrollments(),
+  enrollments: [] as any[],
 };
 
 const enrollmentSlice = createSlice({
   name: "enrollment",
   initialState,
   reducers: {
-    enroll: (state, action) => {
-      const newEnrollment: Enrollment = {
-        _id: new Date().getTime().toString(),
-        user: action.payload.userId,
-        course: action.payload.courseId,
-      };
-      state.enrollments.push(newEnrollment);
-      // Note: Not saving to localStorage here to prevent persistence across refreshes
+    setEnrollments: (state, action) => {
+      state.enrollments = action.payload;
     },
-    unenroll: (state, action) => {
+    addEnrollmentToState: (state, action) => {
+      state.enrollments.push(action.payload);
+    },
+    removeEnrollmentFromState: (state, action) => {
       state.enrollments = state.enrollments.filter(
-        (enrollment: Enrollment) =>
+        (enrollment) =>
           enrollment.user !== action.payload.userId ||
           enrollment.course !== action.payload.courseId
       );
-      // Note: Not saving to localStorage here either
-    },
-    clearEnrollments: (state) => {
-      // Clears enrollments, but only for the session
-      state.enrollments = [];
-      localStorage.removeItem("enrollments");
     },
   },
 });
 
-export const { enroll, unenroll, clearEnrollments } = enrollmentSlice.actions;
+export const {
+  setEnrollments,
+  addEnrollmentToState,
+  removeEnrollmentFromState,
+} = enrollmentSlice.actions;
+
+// Async Thunks for API integration
+export const enroll =
+  (userId: string, courseId: string) => async (dispatch: any) => {
+    const newEnrollment = await client.enrollUserInCourse(courseId, userId);
+    dispatch(addEnrollmentToState(newEnrollment));
+  };
+
+export const unenroll =
+  (userId: string, courseId: string) => async (dispatch: any) => {
+    await client.unenrollUserFromCourse(courseId, userId);
+    dispatch(removeEnrollmentFromState({ userId, courseId }));
+  };
+
 export default enrollmentSlice.reducer;

@@ -1,16 +1,46 @@
 import { useParams } from "react-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import * as coursesClient from "../client";
+import * as modulesClient from "./client";
+
 import ModulesControls from "./ModulesControls";
 import LessonControlButtons from "./LessonControlButtons";
 import ModuleControlButtons from "./ModuleControlButtons";
 import { GrDrag } from "react-icons/gr";
 import ModuleEditor from "./ModuleEditor";
-import { addModule, deleteModule, editModule, updateModule } from "./reducer";
+import {
+  setModules,
+  addModule,
+  deleteModule,
+  editModule,
+  updateModule,
+} from "./reducer";
 
 export default function Modules() {
   const { cid } = useParams();
   const dispatch = useDispatch();
+  const saveModule = async (module: any) => {
+    await modulesClient.updateModule(module);
+    dispatch(updateModule(module));
+  };
+  const removeModule = async (moduleId: string) => {
+    await modulesClient.deleteModule(moduleId);
+    dispatch(deleteModule(moduleId));
+  };
+  const createModuleForCourse = async () => {
+    if (!cid) return;
+    const newModule = { name: moduleName, course: cid };
+    const module = await coursesClient.createModuleForCourse(cid, newModule);
+    dispatch(addModule(module));
+  };
+  const fetchModules = async () => {
+    const modules = await coursesClient.findModulesForCourse(cid as string);
+    dispatch(setModules(modules));
+  };
+  useEffect(() => {
+    fetchModules();
+  }, []);
   const { modules } = useSelector((state: any) => state.modulesReducer);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const [moduleName, setModuleName] = useState("");
@@ -22,7 +52,7 @@ export default function Modules() {
   };
 
   // Filter modules by the current course ID
-  const courseModules = modules.filter((module: any) => module.course === cid);
+  const courseModules = modules; //.filter((module: any) => module.course === cid) (before 4.5.1)
 
   return (
     <div>
@@ -31,7 +61,7 @@ export default function Modules() {
         <ModulesControls
           moduleName={moduleName}
           setModuleName={setModuleName}
-          addModule={handleAddModule}
+          addModule={createModuleForCourse}
         />
       )}
       <br />
@@ -60,7 +90,7 @@ export default function Modules() {
                   }
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      dispatch(updateModule({ ...module, editing: false }));
+                      saveModule({ ...module, editing: false });
                     }
                   }}
                 />
@@ -69,7 +99,7 @@ export default function Modules() {
               {currentUser?.role === "FACULTY" && (
                 <ModuleControlButtons
                   moduleId={module._id}
-                  deleteModule={(moduleId) => dispatch(deleteModule(moduleId))}
+                  deleteModule={(moduleId) => removeModule(moduleId)}
                   editModule={(moduleId) => dispatch(editModule(moduleId))}
                 />
               )}
@@ -101,7 +131,7 @@ export default function Modules() {
           dialogTitle="Add Module"
           moduleName={moduleName}
           setModuleName={setModuleName}
-          addModule={handleAddModule}
+          addModule={createModuleForCourse}
         />
       )}
     </div>

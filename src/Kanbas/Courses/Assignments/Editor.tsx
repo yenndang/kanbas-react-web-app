@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addAssignment, updateAssignment } from "./reducer";
+import * as client from "./client";
 
 interface Assignment {
   _id?: string;
@@ -67,7 +68,7 @@ export default function AssignmentEditor() {
     navigate(`/Kanbas/Courses/${cid}/Assignments`);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const updatedAssignment = {
       ...assignment,
       availableFrom: new Date(assignment.availableFrom).toISOString(),
@@ -76,9 +77,11 @@ export default function AssignmentEditor() {
     };
 
     if (existingAssignment) {
-      dispatch(updateAssignment(updatedAssignment));
+      const updated = await client.updateAssignment(updatedAssignment); // API call
+      dispatch(updateAssignment(updated)); // Update state
     } else {
-      dispatch(addAssignment(updatedAssignment));
+      const created = await client.createAssignment(cid!, updatedAssignment); // API call
+      dispatch(addAssignment(created)); // Update state
     }
     navigate(`/Kanbas/Courses/${cid}/Assignments`);
   };
