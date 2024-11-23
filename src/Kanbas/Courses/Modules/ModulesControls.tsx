@@ -1,19 +1,30 @@
+// Modules/ModulesControls.tsx
+
 import { FaPlus } from "react-icons/fa6";
 import GreenCheckmark from "./GreenCheckmark";
+import React from "react";
 
-export default function ModulesControls() {
+export default function ModulesControls({
+  moduleName,
+  setModuleName,
+  addModule,
+}: {
+  moduleName: string;
+  setModuleName: (title: string) => void;
+  addModule: () => void;
+}) {
   return (
     <div id="wd-modules-controls" className="text-nowrap">
-      {/* Add Module Button */}
       <button
         id="wd-add-module-btn"
         className="btn btn-lg btn-danger me-1 float-end"
+        data-bs-toggle="modal"
+        data-bs-target="#wd-add-module-dialog"
       >
         <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
         Module
       </button>
 
-      {/* Publish All Dropdown */}
       <div className="dropdown d-inline me-1 float-end">
         <button
           id="wd-publish-all-btn"
@@ -45,15 +56,12 @@ export default function ModulesControls() {
               Publish modules only
             </a>
           </li>
-
-          {/* Unpublish Options */}
           <li>
             <a
               id="wd-unpublish-all-modules-and-items-btn"
               className="dropdown-item"
               href="#"
             >
-              {/* <GreenCheckmark /> */}
               Unpublish all modules and items
             </a>
           </li>
@@ -63,22 +71,18 @@ export default function ModulesControls() {
               className="dropdown-item"
               href="#"
             >
-              {/* <GreenCheckmark /> */}
               Unpublish modules only
             </a>
           </li>
         </ul>
       </div>
 
-      {/* View Progress Button */}
       <button
         id="wd-view-progress"
         className="btn btn-lg btn-secondary me-1 float-end"
       >
         View Progress
       </button>
-
-      {/* Collapse All Button */}
       <button
         id="wd-collapse-all"
         className="btn btn-lg btn-secondary me-1 float-end"

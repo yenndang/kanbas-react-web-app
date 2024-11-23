@@ -1,48 +1,89 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import necessary hooks
-import * as db from "../../Database"; // Import assignments from the database
+import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { addAssignment, updateAssignment } from "./reducer";
+import * as client from "./client";
 
-// Define the type for an assignment
 interface Assignment {
-  _id: string;
+  _id?: string;
   title: string;
   course: string;
   availableFrom: string;
   dueDate: string;
   until: string;
   points: number;
-  modules: string[];
+  modules?: string[];
   description: string;
 }
 
+// Helper function to format dates for display in "Month Day, Year" format
+const formatDisplayDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+// Helper function to format dates for "datetime-local" input field (YYYY-MM-DDTHH:MM)
+const formatDateForInput = (dateString: string | undefined) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toISOString().slice(0, 16); // Trims to "YYYY-MM-DDTHH:MM"
+};
+
 export default function AssignmentEditor() {
-  const { cid, assignmentId } = useParams(); // Extract course ID and assignment ID from the URL
-  const navigate = useNavigate(); // Initialize useNavigate for programmatic navigation
-  const assignments: Assignment[] = db.assignments; // Access the assignments from the database
+  const { cid, assignmentId } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [assignment, setAssignment] = useState<Assignment | null>(null);
+  const assignments = useSelector(
+    (state: any) => state.assignmentsReducer.assignments
+  );
 
-  // Fetch the correct assignment based on assignment ID and course ID
-  useEffect(() => {
-    const foundAssignment = assignments.find(
-      (a) => a._id === assignmentId && a.course === cid
-    );
-    setAssignment(foundAssignment || null);
-  }, [cid, assignmentId, assignments]);
+  const existingAssignment = assignments.find(
+    (assignment: Assignment) =>
+      assignment._id === assignmentId && assignment.course === cid
+  );
 
-  if (!assignment) {
-    return <div>Loading...</div>; // Show loading if assignment data hasn't loaded yet
-  }
+  // Default today's date in ISO format for datetime-local input
+  const today = new Date().toISOString().slice(0, 16);
 
-  // Handle Cancel button click
+  const [assignment, setAssignment] = useState<Assignment>({
+    _id: existingAssignment?._id,
+    title: existingAssignment?.title || "New Assignment",
+    course: cid || "",
+    availableFrom: formatDateForInput(
+      existingAssignment?.availableFrom || today
+    ),
+    dueDate: formatDateForInput(existingAssignment?.dueDate || today),
+    until: formatDateForInput(existingAssignment?.until || today),
+    points: existingAssignment?.points || 0,
+    description:
+      existingAssignment?.description || "New Assignment's Description",
+  });
+
   const handleCancel = () => {
     navigate(`/Kanbas/Courses/${cid}/Assignments`);
   };
 
-  // Handle Save button click (you can add save logic here if needed)
-  const handleSave = () => {
-    // Perform save logic here (e.g., API call or state update)
-    navigate(`/Kanbas/Courses/${cid}/Assignments`); // Navigate back to the Assignments screen
+  const handleSave = async () => {
+    const updatedAssignment = {
+      ...assignment,
+      availableFrom: new Date(assignment.availableFrom).toISOString(),
+      dueDate: new Date(assignment.dueDate).toISOString(),
+      until: new Date(assignment.until).toISOString(),
+    };
+
+    if (existingAssignment) {
+      const updated = await client.updateAssignment(updatedAssignment); // API call
+      dispatch(updateAssignment(updated)); // Update state
+    } else {
+      const created = await client.createAssignment(cid!, updatedAssignment); // API call
+      dispatch(addAssignment(created)); // Update state
+    }
+    navigate(`/Kanbas/Courses/${cid}/Assignments`);
   };
 
   return (
@@ -52,9 +93,11 @@ export default function AssignmentEditor() {
         <h5>Assignment Name</h5>
         <input
           id="wd-name"
-          value={assignment.title} // Dynamic assignment title
+          value={assignment.title}
+          onChange={(e) =>
+            setAssignment({ ...assignment, title: e.target.value })
+          }
           className="form-control"
-          readOnly
         />
       </div>
 
@@ -64,8 +107,10 @@ export default function AssignmentEditor() {
           id="wd-description"
           className="form-control"
           rows={8}
-          value={assignment.description} // Dynamic assignment description
-          readOnly
+          value={assignment.description}
+          onChange={(e) =>
+            setAssignment({ ...assignment, description: e.target.value })
+          }
         />
       </div>
 
@@ -82,8 +127,10 @@ export default function AssignmentEditor() {
             id="wd-points"
             type="number"
             className="form-control"
-            value={assignment.points} // Dynamic points
-            readOnly
+            value={assignment.points}
+            onChange={(e) =>
+              setAssignment({ ...assignment, points: parseInt(e.target.value) })
+            }
           />
         </div>
       </div>
@@ -224,10 +271,10 @@ export default function AssignmentEditor() {
               type="datetime-local"
               id="wd-due-date"
               className="form-control"
-              value={new Date(assignment.dueDate)
-                .toISOString()
-                .substring(0, 16)} // Dynamic due date
-              readOnly
+              value={assignment.dueDate}
+              onChange={(e) =>
+                setAssignment({ ...assignment, dueDate: e.target.value })
+              }
             />
             <br />
             <div className="row">
@@ -239,10 +286,13 @@ export default function AssignmentEditor() {
                   type="datetime-local"
                   id="wd-available-from"
                   className="form-control"
-                  value={new Date(assignment.availableFrom)
-                    .toISOString()
-                    .substring(0, 16)} // Dynamic available from date
-                  readOnly
+                  value={assignment.availableFrom}
+                  onChange={(e) =>
+                    setAssignment({
+                      ...assignment,
+                      availableFrom: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="col-md-6">
@@ -253,10 +303,10 @@ export default function AssignmentEditor() {
                   type="datetime-local"
                   id="wd-available-until"
                   className="form-control"
-                  value={new Date(assignment.until)
-                    .toISOString()
-                    .substring(0, 16)} // Dynamic until date
-                  readOnly
+                  value={assignment.until}
+                  onChange={(e) =>
+                    setAssignment({ ...assignment, until: e.target.value })
+                  }
                 />
               </div>
             </div>

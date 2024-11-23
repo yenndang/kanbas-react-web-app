@@ -1,27 +1,75 @@
 import { useParams } from "react-router";
-import * as db from "../../Database"; // Assuming modules.json is imported correctly
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import * as coursesClient from "../client";
+import * as modulesClient from "./client";
+
 import ModulesControls from "./ModulesControls";
 import LessonControlButtons from "./LessonControlButtons";
 import ModuleControlButtons from "./ModuleControlButtons";
-import { GrDrag } from "react-icons/gr"; // Imported GrDrag for a drag handle appearance
+import { GrDrag } from "react-icons/gr";
+import ModuleEditor from "./ModuleEditor";
+import {
+  setModules,
+  addModule,
+  deleteModule,
+  editModule,
+  updateModule,
+} from "./reducer";
 
 export default function Modules() {
-  const { cid } = useParams(); // Retrieve the course ID from the URL
-  const modules = db.modules; // Access the modules data from the database
+  const { cid } = useParams();
+  const dispatch = useDispatch();
+  const saveModule = async (module: any) => {
+    await modulesClient.updateModule(module);
+    dispatch(updateModule(module));
+  };
+  const removeModule = async (moduleId: string) => {
+    await modulesClient.deleteModule(moduleId);
+    dispatch(deleteModule(moduleId));
+  };
+  const createModuleForCourse = async () => {
+    if (!cid) return;
+    const newModule = { name: moduleName, course: cid };
+    const module = await coursesClient.createModuleForCourse(cid, newModule);
+    dispatch(addModule(module));
+  };
+  const fetchModules = async () => {
+    const modules = await coursesClient.findModulesForCourse(cid as string);
+    dispatch(setModules(modules));
+  };
+  useEffect(() => {
+    fetchModules();
+  }, []);
+  const { modules } = useSelector((state: any) => state.modulesReducer);
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const [moduleName, setModuleName] = useState("");
 
-  // Filter modules based on the current course ID (cid)
-  const courseModules = modules.filter((module: any) => module.course === cid);
+  // Add module handler
+  const handleAddModule = () => {
+    dispatch(addModule({ name: moduleName, course: cid }));
+    setModuleName("");
+  };
+
+  // Filter modules by the current course ID
+  const courseModules = modules; //.filter((module: any) => module.course === cid) (before 4.5.1)
 
   return (
     <div>
-      <ModulesControls />
+      {/* Display module controls only for FACULTY role */}
+      {currentUser?.role === "FACULTY" && (
+        <ModulesControls
+          moduleName={moduleName}
+          setModuleName={setModuleName}
+          addModule={createModuleForCourse}
+        />
+      )}
       <br />
       <br />
       <br />
       <br />
 
       <ul id="wd-modules" className="list-group rounded-0">
-        {/* Map over the filtered modules for the current course */}
         {courseModules.map((module: any) => (
           <li
             key={module._id}
@@ -29,11 +77,33 @@ export default function Modules() {
           >
             <div className="wd-title p-3 ps-2 bg-secondary">
               <GrDrag className="me-2" />
-              {module.name} {/* Render the module name */}
-              <ModuleControlButtons />
+              {!module.editing ? (
+                // Display module name if not in editing mode
+                module.name
+              ) : (
+                // Show input field when in editing mode
+                <input
+                  className="form-control w-50 d-inline-block"
+                  defaultValue={module.name}
+                  onChange={(e) =>
+                    dispatch(updateModule({ ...module, name: e.target.value }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      saveModule({ ...module, editing: false });
+                    }
+                  }}
+                />
+              )}
+              {/* Display module control buttons only for FACULTY role */}
+              {currentUser?.role === "FACULTY" && (
+                <ModuleControlButtons
+                  moduleId={module._id}
+                  deleteModule={(moduleId) => removeModule(moduleId)}
+                  editModule={(moduleId) => dispatch(editModule(moduleId))}
+                />
+              )}
             </div>
-
-            {/* If the module has lessons, map them */}
             {module.lessons && (
               <ul className="wd-lessons list-group rounded-0">
                 {module.lessons.map((lesson: any) => (
@@ -42,8 +112,11 @@ export default function Modules() {
                     className="wd-lesson list-group-item p-3 ps-1"
                   >
                     <GrDrag className="me-2" />
-                    {lesson.name} {/* Render the lesson name */}
-                    <LessonControlButtons />
+                    {lesson.name}
+                    {/* Display lesson control buttons only for FACULTY role */}
+                    {currentUser?.role === "FACULTY" && (
+                      <LessonControlButtons />
+                    )}
                   </li>
                 ))}
               </ul>
@@ -51,82 +124,16 @@ export default function Modules() {
           </li>
         ))}
       </ul>
+
+      {/* Module Editor Modal - visible only for FACULTY role */}
+      {currentUser?.role === "FACULTY" && (
+        <ModuleEditor
+          dialogTitle="Add Module"
+          moduleName={moduleName}
+          setModuleName={setModuleName}
+          addModule={createModuleForCourse}
+        />
+      )}
     </div>
   );
 }
-// import ModulesControls from "./ModulesControls";
-// import LessonControlButtons from "./LessonControlButtons";
-// import ModuleControlButtons from "./ModuleControlButtons";
-// import { GrDrag } from "react-icons/gr"; // Imported GrDrag for a drag handle appearance
-
-// export default function Modules() {
-//   return (
-//     <div>
-//       <ModulesControls />
-//       <br />
-//       <br />
-//       <br />
-//       <br />
-//       <ul id="wd-modules" className="list-group rounded-0">
-//         <li className="wd-module list-group-item p-0 mb-5 fs-5 border-gray">
-//           <div className="wd-title p-3 ps-2 bg-secondary">
-//             <GrDrag className="me-2" />
-//             Week 1 {/* GrDrag icon added */}
-//             <ModuleControlButtons />
-//           </div>
-//           <ul className="wd-lessons list-group rounded-0">
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               LEARNING OBJECTIVES {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               Introduction to the course {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               Learn what is Web Development {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               LESSON 1 {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               LESSON 2 {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//           </ul>
-//         </li>
-//         <li className="wd-module list-group-item p-0 mb-5 fs-5 border-gray">
-//           <div className="wd-title p-3 ps-2 bg-secondary">
-//             <GrDrag className="me-2" />
-//             Week 2 {/* GrDrag icon added */}
-//             <ModuleControlButtons />
-//           </div>
-//           <ul className="wd-lessons list-group rounded-0">
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               LEARNING OBJECTIVES {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               LESSON 1 {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//             <li className="wd-lesson list-group-item p-3 ps-1">
-//               <GrDrag className="me-2" />
-//               LESSON 2 {/* GrDrag icon added */}
-//               <LessonControlButtons />
-//             </li>
-//           </ul>
-//         </li>
-//       </ul>
-//     </div>
-//   );
-// }
