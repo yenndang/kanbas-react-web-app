@@ -3,45 +3,45 @@ import { useSelector } from "react-redux";
 
 export default function AccountNavigation() {
   const { currentUser } = useSelector((state: any) => state.accountReducer);
-  const location = useLocation();
+  const { pathname } = useLocation();
+
+  const active = (path: string) =>
+    pathname === `/Kanbas/Account/${path}` ? "active" : "text-danger";
 
   return (
     <div id="wd-account-navigation" className="wd list-group fs-5 rounded-0">
-      {!currentUser && (
+      {!currentUser ? (
         <>
           <Link
             to="/Kanbas/Account/Signin"
-            className={`list-group-item ${
-              location.pathname === "/Kanbas/Account/Signin"
-                ? "active"
-                : "text-danger"
-            } border border-0`}
+            className={`list-group-item ${active("Signin")} border border-0`}
           >
             Signin
           </Link>
           <Link
             to="/Kanbas/Account/Signup"
-            className={`list-group-item ${
-              location.pathname === "/Kanbas/Account/Signup"
-                ? "active"
-                : "text-danger"
-            } border border-0`}
+            className={`list-group-item ${active("Signup")} border border-0`}
           >
             Signup
           </Link>
         </>
-      )}
-      {currentUser && (
-        <Link
-          to="/Kanbas/Account/Profile"
-          className={`list-group-item ${
-            location.pathname === "/Kanbas/Account/Profile"
-              ? "active"
-              : "text-danger"
-          } border border-0`}
-        >
-          Profile
-        </Link>
+      ) : (
+        <>
+          <Link
+            to="/Kanbas/Account/Profile"
+            className={`list-group-item ${active("Profile")} border border-0`}
+          >
+            Profile
+          </Link>
+          {currentUser.role === "ADMIN" && (
+            <Link
+              to="/Kanbas/Account/Users"
+              className={`list-group-item ${active("Users")} border border-0`}
+            >
+              Users
+            </Link>
+          )}
+        </>
       )}
     </div>
   );
