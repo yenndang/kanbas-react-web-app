@@ -40,10 +40,10 @@ export default function ProtectedRoute({ children }: { children: any }) {
     ? enrollments.some((enrollment: any) => enrollment._id === cid)
     : true; // If no `cid` in params, assume access is granted
 
-  console.log("ProtectedRoute -> cid:", cid); // Check the course ID from the URL
-  console.log("ProtectedRoute -> currentUser:", currentUser); // Check the logged-in user
-  console.log("ProtectedRoute -> enrollments:", enrollments); // Check the fetched enrollments
-  console.log("ProtectedRoute -> isEnrolled:", isEnrolled); // Check enrollment logic
+  // console.log("ProtectedRoute -> cid:", cid); // Check the course ID from the URL
+  // console.log("ProtectedRoute -> currentUser:", currentUser); // Check the logged-in user
+  // console.log("ProtectedRoute -> enrollments:", enrollments); // Check the fetched enrollments
+  // console.log("ProtectedRoute -> isEnrolled:", isEnrolled); // Check enrollment logic
 
   if (!currentUser) {
     // If no user is logged in, redirect to Signin
