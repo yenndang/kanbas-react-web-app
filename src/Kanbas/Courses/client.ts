@@ -38,3 +38,8 @@ export const findModulesForCourse = async (courseId: string) => {
 // export function unenrollUserFromCourse(courseId: string, userId: string) {
 //   throw new Error("Function not implemented.");
 // }
+
+export const findUsersForCourse = async (courseId: string) => {
+  const response = await axios.get(`${COURSES_API}/${courseId}/users`);
+  return response.data;
+};
