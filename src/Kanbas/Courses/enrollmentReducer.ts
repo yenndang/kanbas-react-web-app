@@ -31,17 +31,17 @@ export const {
   removeEnrollmentFromState,
 } = enrollmentSlice.actions;
 
-// Async Thunks for API integration
-export const enroll =
-  (userId: string, courseId: string) => async (dispatch: any) => {
-    const newEnrollment = await client.enrollUserInCourse(courseId, userId);
-    dispatch(addEnrollmentToState(newEnrollment));
-  };
+// // Async Thunks for API integration
+// export const enroll =
+//   (userId: string, courseId: string) => async (dispatch: any) => {
+//     const newEnrollment = await client.enrollUserInCourse(courseId, userId);
+//     dispatch(addEnrollmentToState(newEnrollment));
+//   };
 
-export const unenroll =
-  (userId: string, courseId: string) => async (dispatch: any) => {
-    await client.unenrollUserFromCourse(courseId, userId);
-    dispatch(removeEnrollmentFromState({ userId, courseId }));
-  };
+// export const unenroll =
+//   (userId: string, courseId: string) => async (dispatch: any) => {
+//     await client.unenrollUserFromCourse(courseId, userId);
+//     dispatch(removeEnrollmentFromState({ userId, courseId }));
+//   };
 
 export default enrollmentSlice.reducer;

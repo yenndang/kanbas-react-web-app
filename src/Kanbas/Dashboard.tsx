@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { enroll, unenroll, setEnrollments } from "./Courses/enrollmentReducer"; // Assuming these actions are implemented in your enrollmentReducer
+// import { setEnrollments } from "./Courses/enrollmentReducer"; // Assuming these actions are implemented in your enrollmentReducer
 // import * as db from "./Database";
 import { AppDispatch } from "./store";
 import * as client from "./Courses/Enrollments/client";
@@ -34,18 +34,18 @@ export default function Dashboard({
 
   const [showAllCourses, setShowAllCourses] = useState(false);
 
-  // Fetch enrollments on mount or when currentUser changes
-  useEffect(() => {
-    const fetchUserEnrollments = async () => {
-      if (currentUser) {
-        const enrollments = await client.findEnrollmentsForUser(
-          currentUser._id
-        );
-        dispatch(setEnrollments(enrollments));
-      }
-    };
-    fetchUserEnrollments();
-  }, [currentUser, dispatch]);
+  // // Fetch enrollments on mount or when currentUser changes
+  // useEffect(() => {
+  //   const fetchUserEnrollments = async () => {
+  //     if (currentUser) {
+  //       const enrollments = await client.findEnrollmentsForUser(
+  //         currentUser._id
+  //       );
+  //       dispatch(setEnrollments(enrollments));
+  //     }
+  //   };
+  //   fetchUserEnrollments();
+  // }, [currentUser, dispatch]);
 
   // Toggle between showing all courses or only enrolled courses
   const toggleShowAllCourses = () => {
