@@ -12,6 +12,8 @@ export default function Dashboard({
   addNewCourse,
   deleteCourse,
   updateCourse,
+  enrolling,
+  setEnrolling,
 }: {
   courses: any[];
   course: any;
@@ -19,6 +21,8 @@ export default function Dashboard({
   addNewCourse: () => void;
   deleteCourse: (course: any) => void;
   updateCourse: () => void;
+  enrolling: boolean;
+  setEnrolling: (enrolling: boolean) => void;
 }) {
   const dispatch = useDispatch<AppDispatch>(); // Specify AppDispatch type
   const { currentUser } = useSelector((state: any) => state.accountReducer);
@@ -72,7 +76,16 @@ export default function Dashboard({
 
   return (
     <div className="p-4" id="wd-dashboard">
-      <h1 id="wd-dashboard-title">Dashboard</h1>
+      <h1 id="wd-dashboard-title">
+        Dashboard{" "}
+        <button
+          onClick={() => setEnrolling(!enrolling)}
+          className="float-end btn btn-primary"
+        >
+          {enrolling ? "My Courses" : "All Courses"}
+        </button>
+      </h1>
+
       <hr />
       {currentUser?.role === "STUDENT" && (
         <div className="d-flex justify-content-end mb-3">
@@ -160,6 +173,16 @@ export default function Dashboard({
                         textOverflow: "ellipsis",
                       }}
                     >
+                      {enrolling && (
+                        <button
+                          className={`btn ${
+                            course.enrolled ? "btn-danger" : "btn-success"
+                          } float-end`}
+                        >
+                          {course.enrolled ? "Unenroll" : "Enroll"}
+                        </button>
+                      )}
+
                       {courseItem.name}
                     </h5>
                     <p
